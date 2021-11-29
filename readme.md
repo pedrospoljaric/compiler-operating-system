@@ -1,4 +1,4 @@
-#Compiler
+# Compiler
 
 The modeling of both analysis and synthesis phases of the compiler can be found in the `modeling` folder.
 
@@ -24,6 +24,6 @@ If the file `sort.txt` is inside a folder called `tests`, a subfolder named `sor
 
 ---
 
-#Operating System
+# Operating System
 
 The `operating_system` folder contains files with the source code of the operating system developed in C-, along with a script that compiles and merges the parts to create the operating system binary file.
