@@ -1,6 +1,6 @@
 # Compiler
 
-The modeling of both analysis and synthesis phases of the compiler can be found in the `modeling` folder.
+The modeling of both analysis and synthesis phases of the compiler can be found in the `modeling` folder.  
 Check compiler_report.pdf for detailed descriptions about the design and implementation of the compiler. (pt-BR)
 
 To compile a C- code, run the script `generate_compiler.sh` with the code file you want to compile. Example:
