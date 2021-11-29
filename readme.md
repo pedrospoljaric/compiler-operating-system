@@ -1,4 +1,7 @@
+# Compiler
+
 The modeling of both analysis and synthesis phases of the compiler can be found in the `modeling` folder.
+Check compiler_report.pdf for detailed descriptions about the design and implementation of the compiler. (pt-BR)
 
 To compile a C- code, run the script `generate_compiler.sh` with the code file you want to compile. Example:
 
@@ -21,5 +24,9 @@ If the file `sort.txt` is inside a folder called `tests`, a subfolder named `sor
 - `./tests/sort/binaryCode.txt` - contains the final binary code generated on the synthesis phase
 
 ---
+
+# Operating System
+
+Check compiler_report.pdf for detailed descriptions about the design and implementation of the compiler. (pt-BR)
 
 The `operating_system` folder contains files with the source code of the operating system developed in C-, along with a script that compiles and merges the parts to create the operating system binary file.
