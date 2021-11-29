@@ -11,7 +11,7 @@ sh generate_compiler.sh tests/sort.txt
 
 The script will create a folder with the same name and location as the source code, where five output files can be found. Example:
 
-If the file `sort.txt` is inside a folder called `tests`, a subfolder named `sort` will be created inside `tests`with the following output files:
+If the file `sort.txt` is inside a folder called `tests`, a subfolder named `sort` will be created inside `tests` with the following output files:
 
 - `./tests/sort/stab.txt` - contains a visual representation of the symbol table generated on the analysis phase
 
