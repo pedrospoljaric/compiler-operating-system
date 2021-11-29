@@ -1,0 +1,148 @@
+// antes disso preciso copiar os registradores pra Pi tambem
+// cada Pi e SO eh dividido em dados[0:135] e registradores[136:199]
+// STORE Ri memory[199 - 63 + i], 0 <= i <= 63
+// tendo endereco base de memoria, vai colocar no lugar certo de Pi
+// a pilha agora vai ter que comecar em 199 - 63 - 1
+// a memoria base ja vai estar setada, entao eh so fazer um store de todos os registradores
+
+// tenho acesso a toda a memoria por aqui porque a alocacao comeca no endereco 0
+int memory[0];
+// SO 0-199
+
+int configuration[8]; // primeiros enderecos da memoria reservados para configuracao e o SO nao acabar alocando
+
+int lockMem;
+int currentProcessInitialPC;
+int currentProcessFinalPC;
+int currentProcessInitialMemory;
+int currentProcessFinalMemory;
+int currentProcessPC;
+int currentProcessSP;
+int lockPC;
+int enablePreemption;
+
+int processInitialPC[4];
+int processFinalPC[4];
+int processCurrentPC[4];
+int processCurrentSP[4];
+int processReady[4];
+int currentProcess;
+
+int totalProcesses;
+
+void initializeConfigurationAddresses() {
+    totalProcesses = 2;
+    // enderecos de comunicacao com o processador
+    lockMem = 0; // para impedir que o endereco de memoria seja deslocado ate o lock ser liberado
+    currentProcessInitialPC = 1; // para somar no PC
+    currentProcessFinalPC = 2; // para verificar quando o programa acabou e fazer preempcao nesse momento tambem
+    currentProcessInitialMemory = 3; // para somar no dataAddress
+    currentProcessPC = 4; // para continuar PC de onde parou
+    currentProcessSP = 5; // para continuar SP de onde parou
+    lockPC = 6; // para impedir que o PC seja redirecionado ate o lock ser liberado
+    enablePreemption = 7; // para impedir que o PC seja redirecionado ate o lock ser liberado
+}
+
+int schedule() { // escalonador
+    int nextProcess;
+    int x;
+    int continueWhile;
+    int nextTry;
+    
+    output(1004);
+    output(currentProcess);
+    output(0);
+
+    nextProcess = 0;
+    x = 0;
+    continueWhile = 1;
+
+    while (continueWhile == 1) {
+        nextTry = currentProcess + x;
+        if (nextTry >= totalProcesses) nextTry = nextTry - totalProcesses;
+        if (processReady[nextTry] == 1) {
+            nextProcess = nextTry + 1;
+            continueWhile = 0;
+        }
+        x = x + 1;
+        if (x == totalProcesses) continueWhile = 0;
+    }
+
+    return nextProcess;
+}
+
+void redirectToProcess(int nextProcess) {
+    currentProcess = nextProcess;
+    configuration[currentProcessInitialPC] = processInitialPC[currentProcess - 1];
+    configuration[currentProcessFinalPC] = processFinalPC[currentProcess - 1];
+    configuration[currentProcessInitialMemory] = currentProcess * 200;
+    configuration[currentProcessPC] = processCurrentPC[currentProcess - 1]; // preciso  que essa informacao seja inserida em algum momento pra ser lida aqui
+    configuration[currentProcessSP] = processCurrentSP[currentProcess - 1]; // preciso  que essa informacao seja inserida em algum momento pra ser lida aqui
+    // ultima coisa pra mudar eh o lock porque vai destravar o deslocamento de PC e de memoria
+}
+
+void main() {
+    // aumentar o numero de instrucoes no bloco programMemory
+    int nextProcess;
+    int initialSetUp;
+    int step;
+
+    output(1005);
+    output(initialSetUp);
+    output(0);
+    if (initialSetUp != 1) {
+        output(1000);
+        output(0);
+        initializeConfigurationAddresses();
+
+        // fixos e determinados manualmente
+        processInitialPC[0] = 427; // definir onde P1 comeca na memoria de programa
+        processFinalPC[0] = 428; // definir onde P1 termina na memoria de programa
+        processInitialPC[1] = 429; // definir onde P2 comeca na memoria de programa
+        processFinalPC[1] = 430; // definir onde P2 termina na memoria de programa
+
+        processCurrentPC[0] = processInitialPC[0]; // colocar PC de P1 no inicio do programa
+        processCurrentPC[1] = processInitialPC[1]; // colocar PC de P2 no inicio do programa
+        
+        processCurrentSP[0] = 199 - 64; // colocar SP de P1 no final da memoria, 64 espacos sao de registradores
+        processCurrentSP[1] = 199 - 64; // colocar SP de P2 no final da memoria
+
+        processReady[0] = 0;
+        processReady[1] = 0;
+        currentProcess = 0;
+
+        initialSetUp = 1;
+    }
+    
+    output(1006);
+    output(currentProcess);
+    output(0);
+
+    if (currentProcess > 0) {
+        output(1001);
+        output(0);
+        processCurrentPC[currentProcess - 1] = configuration[currentProcessPC];
+        processCurrentSP[currentProcess - 1] = configuration[currentProcessSP];
+        output(processCurrentPC[currentProcess - 1]);
+        output(processFinalPC[currentProcess - 1]);
+        output(0);
+        if (processCurrentPC[currentProcess - 1] > processFinalPC[currentProcess - 1]) processReady[currentProcess - 1] = 0;
+    }
+
+    nextProcess = schedule();
+    if (nextProcess > 0) {
+        output(1002);
+        output(nextProcess);
+        output(0);
+        redirectToProcess(nextProcess);
+    } else {
+        output(1003);
+        output(0);
+
+        processReady[1] = 1; // P2 quer ser executado
+        currentProcess = 2; // P2 comeca executando
+        configuration[enablePreemption] = 0; // com/sem preempcao
+
+        redirectToProcess(currentProcess);
+    }
+}
